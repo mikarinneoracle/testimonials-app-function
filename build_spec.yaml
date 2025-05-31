@@ -28,6 +28,7 @@ steps:
       -H:ReflectionConfigurationFiles=reflection.json \
       -Ob \
       -H:Name=Hello \
+      --enable-url-protocols=https \
       -cp "target/Hellofunc-1.0-SNAPSHOT-jar-with-dependencies.jar"  \
           com.fnproject.fn.runtime.EntryPoint
   - type: Command
