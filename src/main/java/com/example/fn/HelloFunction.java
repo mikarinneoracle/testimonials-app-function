@@ -124,6 +124,7 @@ public class HelloFunction {
         } catch (Exception e)
         {
             System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         try {
@@ -348,7 +349,8 @@ public class HelloFunction {
             connection.close();
         } catch (Exception e)
         {
-            System.out.println("Error:" + e.getMessage());
+            System.out.println(e.getMessage());
+            e.printStackTrace();
             ret = e.getMessage();
         }
 
@@ -431,7 +433,7 @@ public class HelloFunction {
                     TESTIMONIAL = "";
                     GENERATED_TESTIMONIAL = "";
                 } catch (Exception e) {
-                    System.out.println("Error:" + e.getMessage());
+                    System.out.println(e.getMessage());
                     ret = e.getMessage();
                 }
             } else {
