@@ -243,7 +243,6 @@ public class HelloFunction {
             {
                 System.out.println("Error:" + e.getMessage());
                 ret = e.getMessage();
-                e.printStackTrace();
             }
             return ret;
         }
