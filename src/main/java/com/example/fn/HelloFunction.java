@@ -123,8 +123,7 @@ public class HelloFunction {
             pds.setConnectionProperties(props);
         } catch (Exception e)
         {
-            //System.out.println(e.getMessage());
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
         try {
@@ -244,6 +243,7 @@ public class HelloFunction {
             {
                 System.out.println("Error:" + e.getMessage());
                 ret = e.getMessage();
+                e.printStackTrace();
             }
             return ret;
         }
