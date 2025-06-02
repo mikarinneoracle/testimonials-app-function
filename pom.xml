@@ -17,6 +17,13 @@
                 <descriptorRefs>
                     <descriptorRef>jar-with-dependencies</descriptorRef>
                 </descriptorRefs>
+                <!--
+                <archive>
+                    <manifest>
+                        <mainClass>com.example.fn.HelloFunction</mainClass>
+                    </manifest>
+                </archive>
+                -->
             </configuration>
             <executions>
                 <execution>
@@ -61,8 +68,13 @@
     </dependency>
     <dependency>
         <groupId>com.oracle.database.jdbc</groupId>
-        <artifactId>ucp</artifactId>
+        <artifactId>ucp11</artifactId>
         <version>23.7.0.25.01</version>
+    </dependency>
+    <dependency>
+        <groupId>com.oracle.database.security</groupId>
+        <artifactId>oraclepki</artifactId>
+        <version>23.8.0.25.04</version>
     </dependency>
     <dependency>
         <groupId>jakarta.ws.rs</groupId>

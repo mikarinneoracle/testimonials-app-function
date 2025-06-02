@@ -29,8 +29,14 @@ steps:
       -Ob \
       -H:Name=Hello \
       --enable-url-protocols=https \
+      --enable-all-security-services \
+       -H:IncludeResourceBundles=oracle.net.jdbc.nl.mesg.NLSR,oracle.net.mesg.Message \
+        --allow-incomplete-classpath \
+      --initialize-at-build-time=oracle.net.jdbc.nl.mesg.NLSR_en \
+      --initialize-at-build-time=oracle.jdbc.driver.DynamicByteArray,oracle.sql.ConverterArchive,oracle.sql.converter.CharacterConverterJDBC,oracle.sql.converter.CharacterConverter1Byte \
+      --initialize-at-run-time=java.sql.DriverManager \
       -cp "target/Hellofunc-1.0-SNAPSHOT-jar-with-dependencies.jar"  \
-          com.fnproject.fn.runtime.EntryPoint
+              com.fnproject.fn.runtime.EntryPoint
   - type: Command
     command: |
       docker build -f Dockerfile.native -t ${REGISTRY}/${NAMESPACE}/${IMAGE_NAME} .
