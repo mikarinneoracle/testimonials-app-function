@@ -7,6 +7,6 @@ run_image: fnproject/fn-java-fdk:jre17-1.0.207
 cmd: com.example.fn.HelloFunction::handleRequest
 memory: 1024
 triggers:
-- name: invoke
+- name: testimonials
   type: http
-  source: /invoke
+  source: /testimonials
