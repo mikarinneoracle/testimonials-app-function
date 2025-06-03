@@ -1,4 +1,6 @@
 FROM fnproject/fn-java-fdk:jre17-latest
-COPY Hello ./
+COPY Hello /
+COPY func.yaml /
+RUN chmod 777 /func.yaml
 ENTRYPOINT [ "./Hello" ]
 CMD [ "com.example.fn.HelloFunction::handleRequest", "-Djava.library.path=/function/runtime/lib"]
