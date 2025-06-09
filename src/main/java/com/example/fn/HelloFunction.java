@@ -99,7 +99,6 @@ public class HelloFunction {
     private static String IDCS_URL          = "";
     private static String PROFILE_ID        = "";
 
-    /*
     // For testing native image locally
     public static void main(String[] args) {
         System.out.println("Main running ...");
@@ -108,9 +107,6 @@ public class HelloFunction {
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             PoolDataSource PDS = PoolDataSourceFactory.getPoolDataSource();
             PDS.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            PDS.setURL("jdbc:oracle:thin:@(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.eu-frankfurt-1.oraclecloud.com))(connect_data=(service_name=g9051959400a6d8_fntest_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))");
-            PDS.setUser("admin");
-            PDS.setPassword("WelcomeFolks123##");
             PDS.setConnectionPoolName("JDBC_UCP_POOL");
             PDS.setConnectionProperties(props);
             OracleConnection connection = (OracleConnection) PDS.getConnection();
@@ -126,7 +122,6 @@ public class HelloFunction {
             e.printStackTrace();
         }
     }
-    */
 
     @FnConfiguration
     public void setUp(RuntimeContext ctx) throws Exception {
