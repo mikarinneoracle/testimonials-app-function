@@ -206,11 +206,6 @@ public class HelloFunction {
                     byte[] buffer = new byte[4096];
                     while ((entry = zis.getNextEntry()) != null) {
                         File outFile = new File(outputDir, entry.getName());
-                        // Create parent directories
-                        File parent = outFile.getParentFile();
-                        if (!parent.exists()) {
-                            parent.mkdirs();
-                        }
                         try (FileOutputStream fos = new FileOutputStream(outFile)) {
                             int len;
                             while ((len = zis.read(buffer)) > 0) {
