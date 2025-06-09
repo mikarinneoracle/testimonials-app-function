@@ -220,7 +220,6 @@ public class HelloFunction {
                         zis.closeEntry();
                     }
                 }
-
             } else {
                 pds.setURL(DB_URL);
             }
