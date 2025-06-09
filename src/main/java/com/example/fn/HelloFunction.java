@@ -184,6 +184,7 @@ public class HelloFunction {
             pds.setPassword(DB_PASSWORD);
             if(DB_WALLET_OCID.length() > 0) {
                 pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
+                System.out.println("Using mTLS with Wallet:" + DB_URL + "?TNS_ADMIN=/tmp");
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
                         .generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single)
@@ -216,6 +217,7 @@ public class HelloFunction {
                     }
                 }
             } else {
+                System.out.println("Using TLS without Wallet");
                 pds.setURL(DB_URL);
             }
             pds.setUser(DB_USER);
