@@ -101,15 +101,71 @@ public class HelloFunction {
 
     // For testing native image locally
     public static void main(String[] args) {
-        System.out.println("Main running ...");
+        System.out.println("Main running ... testing DB connection ... ");
         try {
+            try {
+                ConfigFileAuthenticationDetailsProvider configFileAuthenticationDetailsProvider =
+                        new ConfigFileAuthenticationDetailsProvider("~/.oci/config", "DEFAULT");
+                databaseClient =
+                        DatabaseClient.builder()
+                                .region(REGION)
+                                .endpoint(GENAI_ENDPOINT)
+                                .build(configFileAuthenticationDetailsProvider);
+            } catch (Exception ee) {
+                System.out.println(ee.getMessage());
+            }
+            DB_USER = System.getenv().getOrDefault("DB_USER", "");
+            DB_PASSWORD = System.getenv().getOrDefault("DB_PASSWORD", "");
+            DB_URL = "jdbc:oracle:thin:@" + System.getenv().getOrDefault("DB_URL", "");
+            DB_WALLET_OCID = System.getenv().getOrDefault("DB_WALLET_OCID", "");
+            DB_WALLET_PASSWORD = System.getenv().getOrDefault("DB_WALLET_PASSWORD", "");
             Properties props = new Properties();
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
-            PoolDataSource PDS = PoolDataSourceFactory.getPoolDataSource();
-            PDS.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            PDS.setConnectionPoolName("JDBC_UCP_POOL");
-            PDS.setConnectionProperties(props);
-            OracleConnection connection = (OracleConnection) PDS.getConnection();
+            PoolDataSource _pds = PoolDataSourceFactory.getPoolDataSource();
+            _pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
+            if(DB_WALLET_OCID.length() > 0) {
+                _pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
+                System.out.println("Using mTLS with Wallet:" + DB_URL + "?TNS_ADMIN=/tmp");
+                // Download wallet using SDK
+                GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
+                        .generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single)
+                        .password(DB_WALLET_PASSWORD)
+                        .isRegional(true)
+                        .build();
+
+                GenerateAutonomousDatabaseWalletRequest request = GenerateAutonomousDatabaseWalletRequest.builder()
+                        .autonomousDatabaseId(DB_WALLET_OCID)
+                        .generateAutonomousDatabaseWalletDetails(walletDetails)
+                        .build();
+                GenerateAutonomousDatabaseWalletResponse response = databaseClient.generateAutonomousDatabaseWallet(request);
+                InputStream inputStream = response.getInputStream();
+                File outputDir = new File("/tmp/");
+                if (!outputDir.exists()) {
+                    outputDir.mkdirs();
+                }
+                try (ZipInputStream zis = new ZipInputStream(inputStream)) {
+                    ZipEntry entry;
+                    byte[] buffer = new byte[4096];
+                    while ((entry = zis.getNextEntry()) != null) {
+                        File outFile = new File(outputDir, entry.getName());
+                        try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                            int len;
+                            while ((len = zis.read(buffer)) > 0) {
+                                fos.write(buffer, 0, len);
+                            }
+                        }
+                        zis.closeEntry();
+                    }
+                }
+            } else {
+                System.out.println("Using TLS without Wallet");
+                _pds.setURL(DB_URL);
+            }
+            _pds.setUser(DB_USER);
+            _pds.setPassword(DB_PASSWORD);
+            _pds.setConnectionPoolName("JDBC_UCP_POOL");
+            _pds.setConnectionProperties(props);
+            OracleConnection connection = (OracleConnection) _pds.getConnection();
             PreparedStatement userQuery = connection.prepareStatement("SELECT SYSDATE");
             ResultSet rs = userQuery.executeQuery();
             if(rs.next()) {
@@ -155,6 +211,11 @@ public class HelloFunction {
                             .region(REGION)
                             .endpoint(GENAI_ENDPOINT)
                             .build(resourcePrincipalAuthenticationDetailsProvider);
+            databaseClient =
+                    DatabaseClient.builder()
+                            .region(REGION)
+                            .endpoint(GENAI_ENDPOINT)
+                            .build(resourcePrincipalAuthenticationDetailsProvider);
 
         } catch (Exception e) {
             try {
@@ -162,6 +223,11 @@ public class HelloFunction {
                         new ConfigFileAuthenticationDetailsProvider("/config", "DEFAULT");
                 generativeAiInferenceClient =
                         GenerativeAiInferenceClient.builder()
+                                .region(REGION)
+                                .endpoint(GENAI_ENDPOINT)
+                                .build(configFileAuthenticationDetailsProvider);
+                databaseClient =
+                        DatabaseClient.builder()
                                 .region(REGION)
                                 .endpoint(GENAI_ENDPOINT)
                                 .build(configFileAuthenticationDetailsProvider);
@@ -175,8 +241,6 @@ public class HelloFunction {
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             pds = PoolDataSourceFactory.getPoolDataSource();
             pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            pds.setUser(DB_USER);
-            pds.setPassword(DB_PASSWORD);
             if(DB_WALLET_OCID.length() > 0) {
                 pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
                 System.out.println("Using mTLS with Wallet:" + DB_URL + "?TNS_ADMIN=/tmp");
@@ -217,8 +281,6 @@ public class HelloFunction {
             }
             pds.setUser(DB_USER);
             pds.setPassword(DB_PASSWORD);
-            pds.setConnectionPoolName("JDBC_UCP_POOL");
-            pds.setConnectionProperties(props);
             pds.setConnectionPoolName("JDBC_UCP_POOL");
             pds.setConnectionProperties(props);
         } catch (Exception e)
