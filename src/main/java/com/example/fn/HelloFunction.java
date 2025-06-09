@@ -286,7 +286,6 @@ public class HelloFunction {
         } catch (Exception e)
         {
             System.out.println(e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -489,7 +488,6 @@ public class HelloFunction {
         } catch (Exception e)
         {
             System.out.println(e.getMessage());
-            e.printStackTrace();
             ret = e.getMessage();
         }
 
