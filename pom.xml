@@ -108,6 +108,11 @@
     </dependency>
     <dependency>
         <groupId>com.oracle.oci.sdk</groupId>
+        <artifactId>oci-java-sdk-database</artifactId>
+        <version>3.50.2</version>
+    </dependency>
+    <dependency>
+        <groupId>com.oracle.oci.sdk</groupId>
         <artifactId>oci-java-sdk-common-httpclient-jersey3</artifactId>
         <scope>runtime</scope>
         <version>3.37.2</version>

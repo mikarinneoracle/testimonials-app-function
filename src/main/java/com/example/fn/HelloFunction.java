@@ -6,10 +6,7 @@ import com.fnproject.fn.api.InputEvent;
 import com.fnproject.fn.api.RuntimeContext;
 import com.fnproject.fn.api.httpgateway.HTTPGatewayContext;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
@@ -62,23 +59,36 @@ import com.oracle.bmc.generativeaiinference.model.OnDemandServingMode;
 import com.oracle.bmc.generativeaiinference.model.ServingMode;
 import com.oracle.bmc.generativeaiinference.model.TextContent;
 import com.oracle.bmc.retrier.RetryConfiguration;
+import com.oracle.bmc.database.requests.GenerateAutonomousDatabaseWalletRequest;
+import com.oracle.bmc.database.DatabaseClient;
+import com.oracle.bmc.database.model.GenerateAutonomousDatabaseWalletDetails;
+import com.oracle.bmc.database.responses.GenerateAutonomousDatabaseWalletResponse;
 import java.util.Random;
+import java.util.zip.*;
 
 public class HelloFunction {
 
+    // JDBC CONNECTION POOL
     private PoolDataSource pds;
-    // JDBC CONNECTION DETAILS
-    private String DB_USER;
-    private String DB_PASSWORD;
-    private String DB_URL;
 
-    GenerativeAiInferenceClient generativeAiInferenceClient;
+    // JDBC CONNECTION DETAILS
+    private static String DB_USER;
+    private static String DB_PASSWORD;
+    private static String DB_URL;
+    private static String DB_WALLET_OCID;
+    private static String DB_WALLET_PASSWORD;
+
+    // For SDK
+    private static GenerativeAiInferenceClient generativeAiInferenceClient;
+    private static DatabaseClient databaseClient;
+
     // GENAI OCI DETAILS
     private static Region REGION           = Region.EU_FRANKFURT_1;
     private static String COMPARTMENT_OCID = "";
     private static String GENAI_OCID       = "";
     private static String GENAI_ENDPOINT   = "";
 
+    // APP CONFIGS
     private static String PAGE_URL          = "";
     private static String SIGNUP_URL        = "";
     private static String SIGNUP_PAGE_URL   = "";
@@ -129,6 +139,8 @@ public class HelloFunction {
         DB_USER = ctx.getConfigurationByKey("DB_USER").orElse(System.getenv().getOrDefault("DB_USER", ""));
         DB_PASSWORD = ctx.getConfigurationByKey("DB_PASSWORD").orElse(System.getenv().getOrDefault("DB_PASSWORD", ""));
         DB_URL = "jdbc:oracle:thin:@" + ctx.getConfigurationByKey("DB_URL").orElse(System.getenv().getOrDefault("DB_URL", ""));
+        DB_WALLET_OCID = ctx.getConfigurationByKey("DB_WALLET_OCID").orElse(System.getenv().getOrDefault("DB_WALLET_OCID", ""));
+        DB_WALLET_PASSWORD = ctx.getConfigurationByKey("DB_WALLET_PASSWORD").orElse(System.getenv().getOrDefault("DB_WALLET_PASSWORD", ""));
 
         PAGE_URL = ctx.getConfigurationByKey("PAGE_URL").orElse(System.getenv().getOrDefault("PAGE_URL", ""));
         SIGNUP_URL = ctx.getConfigurationByKey("SIGNUP_URL").orElse(System.getenv().getOrDefault("SIGNUP_URL", ""));
@@ -139,22 +151,6 @@ public class HelloFunction {
         WELCOME_URL = ctx.getConfigurationByKey("WELCOME_URL").orElse(System.getenv().getOrDefault("WELCOME_URL", ""));
         IDCS_URL = ctx.getConfigurationByKey("IDCS_URL").orElse(System.getenv().getOrDefault("IDCS_URL", ""));
         PROFILE_ID = ctx.getConfigurationByKey("PROFILE_ID").orElse(System.getenv().getOrDefault("PROFILE_ID", ""));
-
-        try {
-            Properties props = new Properties();
-            props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
-            pds = PoolDataSourceFactory.getPoolDataSource();
-            pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            pds.setURL(DB_URL);
-            pds.setUser(DB_USER);
-            pds.setPassword(DB_PASSWORD);
-            pds.setConnectionPoolName("JDBC_UCP_POOL");
-            pds.setConnectionProperties(props);
-        } catch (Exception e)
-        {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
 
         try {
             ResourcePrincipalAuthenticationDetailsProvider resourcePrincipalAuthenticationDetailsProvider =
@@ -177,6 +173,67 @@ public class HelloFunction {
             } catch (Exception ee) {
                 System.out.println(ee.getMessage());
             }
+        }
+
+        try {
+            Properties props = new Properties();
+            props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
+            pds = PoolDataSourceFactory.getPoolDataSource();
+            pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
+            pds.setUser(DB_USER);
+            pds.setPassword(DB_PASSWORD);
+            if(DB_WALLET_OCID.length() > 0) {
+                pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
+                // Download wallet using SDK
+                GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
+                        .generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single)
+                        .password(DB_WALLET_PASSWORD)
+                        .isRegional(true)
+                        .build();
+
+                GenerateAutonomousDatabaseWalletRequest request = GenerateAutonomousDatabaseWalletRequest.builder()
+                        .autonomousDatabaseId(DB_WALLET_OCID)
+                        .generateAutonomousDatabaseWalletDetails(walletDetails)
+                        .build();
+                GenerateAutonomousDatabaseWalletResponse response = databaseClient.generateAutonomousDatabaseWallet(request);
+                InputStream inputStream = response.getInputStream();
+                File outputDir = new File("/tmp/");
+                if (!outputDir.exists()) {
+                    outputDir.mkdirs();
+                }
+                try (ZipInputStream zis = new ZipInputStream(inputStream)) {
+                    ZipEntry entry;
+                    byte[] buffer = new byte[4096];
+                    while ((entry = zis.getNextEntry()) != null) {
+                        File outFile = new File(outputDir, entry.getName());
+                        // Create parent directories
+                        File parent = outFile.getParentFile();
+                        if (!parent.exists()) {
+                            parent.mkdirs();
+                        }
+                        try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                            int len;
+                            while ((len = zis.read(buffer)) > 0) {
+                                fos.write(buffer, 0, len);
+                            }
+                        }
+                        zis.closeEntry();
+                    }
+                }
+
+            } else {
+                pds.setURL(DB_URL);
+            }
+            pds.setUser(DB_USER);
+            pds.setPassword(DB_PASSWORD);
+            pds.setConnectionPoolName("JDBC_UCP_POOL");
+            pds.setConnectionProperties(props);
+            pds.setConnectionPoolName("JDBC_UCP_POOL");
+            pds.setConnectionProperties(props);
+        } catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
