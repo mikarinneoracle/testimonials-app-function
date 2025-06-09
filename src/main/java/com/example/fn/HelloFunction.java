@@ -147,6 +147,7 @@ public class HelloFunction {
                     ZipEntry entry;
                     byte[] buffer = new byte[4096];
                     while ((entry = zis.getNextEntry()) != null) {
+                        System.out.println("DB WALLET file: " + entry.getName());
                         File outFile = new File(outputDir, entry.getName());
                         try (FileOutputStream fos = new FileOutputStream(outFile)) {
                             int len;
