@@ -301,7 +301,6 @@ public class HelloFunction {
                         (Base64SecretBundleContentDetails) getSecretBundleResponse.
                                 getSecretBundle().getSecretBundleContent();
                 byte[] secretValueDecoded = Base64.getDecoder().decode(base64SecretBundleContentDetails.getContent());
-                //byte[] secretValueDecoded = Base64.decodeBase64(base64SecretBundleContentDetails.getContent());
                 DB_PASSWORD = new String(secretValueDecoded);
                 System.out.println("Got DB password from Vault " + DB_PASSWORD);
             }
