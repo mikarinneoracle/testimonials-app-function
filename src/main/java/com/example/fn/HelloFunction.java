@@ -65,6 +65,10 @@ import com.oracle.bmc.database.model.GenerateAutonomousDatabaseWalletDetails;
 import com.oracle.bmc.database.responses.GenerateAutonomousDatabaseWalletResponse;
 import java.util.Random;
 import java.util.zip.*;
+import com.oracle.bmc.secrets.SecretsClient;
+import com.oracle.bmc.secrets.model.Base64SecretBundleContentDetails;
+import com.oracle.bmc.secrets.requests.GetSecretBundleRequest;
+import com.oracle.bmc.secrets.responses.GetSecretBundleResponse;
 
 public class HelloFunction {
 
@@ -81,6 +85,8 @@ public class HelloFunction {
     // For SDK
     private static GenerativeAiInferenceClient generativeAiInferenceClient;
     private static DatabaseClient databaseClient;
+    private static SecretsClient secretsClient;
+    private static String VAULT_KEY_LITERAL = "ocid1.vaultsecret";
 
     // GENAI OCI DETAILS
     private static Region REGION           = Region.EU_FRANKFURT_1;
@@ -111,14 +117,50 @@ public class HelloFunction {
                                 .region(REGION)
                                 .endpoint(GENAI_ENDPOINT)
                                 .build(configFileAuthenticationDetailsProvider);
-            } catch (Exception ee) {
-                System.out.println(ee.getMessage());
+                secretsClient = new SecretsClient(configFileAuthenticationDetailsProvider);
+                secretsClient.setRegion(REGION);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
             DB_USER = System.getenv().getOrDefault("DB_USER", "");
             DB_PASSWORD = System.getenv().getOrDefault("DB_PASSWORD", "");
             DB_URL = "jdbc:oracle:thin:@" + System.getenv().getOrDefault("DB_URL", "");
             DB_WALLET_OCID = System.getenv().getOrDefault("DB_WALLET_OCID", "");
             DB_WALLET_PASSWORD = System.getenv().getOrDefault("DB_WALLET_PASSWORD", "");
+            if(DB_PASSWORD.length() > VAULT_KEY_LITERAL.length() && DB_PASSWORD.substring(0, VAULT_KEY_LITERAL.length()).equalsIgnoreCase(VAULT_KEY_LITERAL)) {
+                System.out.println("Getting DB password from Vault " + DB_PASSWORD);
+                GetSecretBundleRequest getSecretBundleRequest = GetSecretBundleRequest
+                        .builder()
+                        .secretId(DB_PASSWORD)
+                        .stage(GetSecretBundleRequest.Stage.Current)
+                        .build();
+                GetSecretBundleResponse getSecretBundleResponse = secretsClient
+                        .getSecretBundle(getSecretBundleRequest);
+                Base64SecretBundleContentDetails base64SecretBundleContentDetails =
+                        (Base64SecretBundleContentDetails) getSecretBundleResponse.
+                                getSecretBundle().getSecretBundleContent();
+                byte[] secretValueDecoded = Base64.getDecoder().decode(base64SecretBundleContentDetails.getContent());
+                //byte[] secretValueDecoded = Base64.decodeBase64(base64SecretBundleContentDetails.getContent());
+                DB_PASSWORD = new String(secretValueDecoded);
+                System.out.println("Got DB password from Vault " + DB_PASSWORD);
+            }
+            if(DB_WALLET_PASSWORD.length() > VAULT_KEY_LITERAL.length() && DB_WALLET_PASSWORD.substring(0, VAULT_KEY_LITERAL.length()).equalsIgnoreCase(VAULT_KEY_LITERAL)) {
+                System.out.println("Getting DB Wallet password from Vault " + DB_WALLET_PASSWORD);
+                GetSecretBundleRequest getSecretBundleRequest = GetSecretBundleRequest
+                        .builder()
+                        .secretId(DB_WALLET_PASSWORD)
+                        .stage(GetSecretBundleRequest.Stage.Current)
+                        .build();
+                GetSecretBundleResponse getSecretBundleResponse = secretsClient
+                        .getSecretBundle(getSecretBundleRequest);
+                Base64SecretBundleContentDetails base64SecretBundleContentDetails =
+                        (Base64SecretBundleContentDetails) getSecretBundleResponse.
+                                getSecretBundle().getSecretBundleContent();
+                byte[] secretValueDecoded = Base64.getDecoder().decode(base64SecretBundleContentDetails.getContent());
+                //byte[] secretValueDecoded = Base64.decodeBase64(base64SecretBundleContentDetails.getContent());
+                DB_WALLET_PASSWORD = new String(secretValueDecoded);
+                System.out.println("Got DB Wallet password from Vault " + DB_WALLET_PASSWORD);
+            }
             Properties props = new Properties();
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             PoolDataSource _pds = PoolDataSourceFactory.getPoolDataSource();
@@ -170,7 +212,7 @@ public class HelloFunction {
             PreparedStatement userQuery = connection.prepareStatement("SELECT SYSDATE");
             ResultSet rs = userQuery.executeQuery();
             if(rs.next()) {
-                System.out.println(rs.getString("SYSDATE"));
+                System.out.println("Database returned SYSDATE: " + rs.getString("SYSDATE"));
             }
             connection.close();
         } catch (Exception e)
@@ -217,6 +259,8 @@ public class HelloFunction {
                             .region(REGION)
                             .endpoint(GENAI_ENDPOINT)
                             .build(resourcePrincipalAuthenticationDetailsProvider);
+            secretsClient = new SecretsClient(resourcePrincipalAuthenticationDetailsProvider);
+            secretsClient.setRegion(REGION);
 
         } catch (Exception e) {
             try {
@@ -232,6 +276,8 @@ public class HelloFunction {
                                 .region(REGION)
                                 .endpoint(GENAI_ENDPOINT)
                                 .build(configFileAuthenticationDetailsProvider);
+                secretsClient = new SecretsClient(configFileAuthenticationDetailsProvider);
+                secretsClient.setRegion(REGION);
             } catch (Exception ee) {
                 System.out.println(ee.getMessage());
             }
@@ -242,6 +288,39 @@ public class HelloFunction {
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             pds = PoolDataSourceFactory.getPoolDataSource();
             pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
+            if(DB_PASSWORD.length() > VAULT_KEY_LITERAL.length() && DB_PASSWORD.substring(0, VAULT_KEY_LITERAL.length()).equalsIgnoreCase(VAULT_KEY_LITERAL)) {
+                System.out.println("Getting DB password from Vault " + DB_PASSWORD);
+                GetSecretBundleRequest getSecretBundleRequest = GetSecretBundleRequest
+                        .builder()
+                        .secretId(DB_PASSWORD)
+                        .stage(GetSecretBundleRequest.Stage.Current)
+                        .build();
+                GetSecretBundleResponse getSecretBundleResponse = secretsClient
+                        .getSecretBundle(getSecretBundleRequest);
+                Base64SecretBundleContentDetails base64SecretBundleContentDetails =
+                        (Base64SecretBundleContentDetails) getSecretBundleResponse.
+                                getSecretBundle().getSecretBundleContent();
+                byte[] secretValueDecoded = Base64.getDecoder().decode(base64SecretBundleContentDetails.getContent());
+                //byte[] secretValueDecoded = Base64.decodeBase64(base64SecretBundleContentDetails.getContent());
+                DB_PASSWORD = new String(secretValueDecoded);
+                System.out.println("Got DB password from Vault " + DB_PASSWORD);
+            }
+            if(DB_WALLET_PASSWORD.length() > VAULT_KEY_LITERAL.length() && DB_WALLET_PASSWORD.substring(0, VAULT_KEY_LITERAL.length()).equalsIgnoreCase(VAULT_KEY_LITERAL)) {
+                System.out.println("Getting DB Wallet password from Vault " + DB_WALLET_PASSWORD);
+                GetSecretBundleRequest getSecretBundleRequest = GetSecretBundleRequest
+                        .builder()
+                        .secretId(DB_WALLET_PASSWORD)
+                        .stage(GetSecretBundleRequest.Stage.Current)
+                        .build();
+                GetSecretBundleResponse getSecretBundleResponse = secretsClient
+                        .getSecretBundle(getSecretBundleRequest);
+                Base64SecretBundleContentDetails base64SecretBundleContentDetails =
+                        (Base64SecretBundleContentDetails) getSecretBundleResponse.
+                                getSecretBundle().getSecretBundleContent();
+                byte[] secretValueDecoded = Base64.getDecoder().decode(base64SecretBundleContentDetails.getContent());
+                DB_WALLET_PASSWORD = new String(secretValueDecoded);
+                System.out.println("Got DB Wallet password from Vault " + DB_WALLET_PASSWORD);
+            }
             if(DB_WALLET_OCID.length() > 0) {
                 pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
                 System.out.println("Using mTLS with Wallet:" + DB_URL + "?TNS_ADMIN=/tmp");
