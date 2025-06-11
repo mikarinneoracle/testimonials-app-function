@@ -27,7 +27,7 @@ steps:
       native-image \
       -H:+UnlockExperimentalVMOptions \
       -H:ReflectionConfigurationFiles=reflection.json \
-      -H:ResourceConfigurationFiles=resources.json\
+      -H:ResourceConfigurationFiles=resources.json \
       -Ob \
       -H:Name=Hello \
       --enable-url-protocols=https \
