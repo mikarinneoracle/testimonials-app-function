@@ -119,7 +119,7 @@ public class HelloFunction {
         System.out.println("Main running ... testing DB connection ... ");
         String currentSysDate = "";
         String ret = "";
-        // Get resource "freemarker/version.properties"//[Code-Assist (15)]
+        // Get resource "freemarker/version.properties"
         try (InputStream is = HelloFunction.class.getClassLoader().getResourceAsStream("freemarker/version.properties")) {
             if (is != null) {
                 Properties props = new Properties();
