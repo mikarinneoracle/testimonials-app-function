@@ -25,6 +25,7 @@ steps:
   - type: Command
     command: |
       native-image \
+      -H:+UnlockExperimentalVMOptions \
       -H:ReflectionConfigurationFiles=reflection.json \
       -H:ResourceConfigurationFiles=resources.json\
       -Ob \
