@@ -69,6 +69,10 @@ import com.oracle.bmc.secrets.SecretsClient;
 import com.oracle.bmc.secrets.model.Base64SecretBundleContentDetails;
 import com.oracle.bmc.secrets.requests.GetSecretBundleRequest;
 import com.oracle.bmc.secrets.responses.GetSecretBundleResponse;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import java.util.Map;
+import java.util.HashMap;
 
 public class HelloFunction {
 
@@ -104,6 +108,11 @@ public class HelloFunction {
     private static String WELCOME_URL       = "";
     private static String IDCS_URL          = "";
     private static String PROFILE_ID        = "";
+
+    // Freemarker page templates
+    private static Template loginTemplate;
+    private static Template testimonialsTemplate;
+    private static Configuration configuration;
 
     // For testing native image locally
     public static void main(String[] args) {
@@ -361,6 +370,19 @@ public class HelloFunction {
             pds.setPassword(DB_PASSWORD);
             pds.setConnectionPoolName("JDBC_UCP_POOL");
             pds.setConnectionProperties(props);
+
+            // Freemarker
+            URL urlObject = new URL(SIGNUP_PAGE_URL);
+            URLConnection urlConnection = urlObject.openConnection();
+            InputStream inputStream = urlConnection.getInputStream();
+            String pageContent = readFromInputStream(inputStream);
+            configuration = new Configuration();
+            loginTemplate = new Template("LoginTemplate", pageContent, configuration);
+            urlObject = new URL(PAGE_URL);
+            urlConnection = urlObject.openConnection();
+            inputStream = urlConnection.getInputStream();
+            pageContent = readFromInputStream(inputStream);
+            testimonialsTemplate = new Template("TestimonialsTemplate", pageContent, configuration);
         } catch (Exception e)
         {
             System.out.println(e.getMessage());
@@ -448,14 +470,15 @@ public class HelloFunction {
         {
             String items = getCarouselItems(CAROUSEL_PAGE_URL);
             try {
-                URL urlObject = new URL(SIGNUP_PAGE_URL);
-                URLConnection urlConnection = urlObject.openConnection();
-                InputStream inputStream = urlConnection.getInputStream();
-                ret = ret + readFromInputStream(inputStream);
-                ret = ret.replace("CAROUSEL_ITEMS", items);
-                ret = ret.replace("SIGNUP_URL", SIGNUP_URL);
-                ret = ret.replace("SIGNIN_URL", AUTH_URL);
+                Map<String, String> data = new HashMap<String, String>();
+                data.put("CAROUSEL_ITEMS", items);
+                data.put("SIGNUP_URL", SIGNUP_URL);
+                data.put("SIGNIN_URL", AUTH_URL);
+                StringWriter stringWriter = new StringWriter();
+                loginTemplate.process(data, stringWriter);
+                stringWriter.flush();
                 hctx.setResponseHeader("Content-type", "text/html");
+                ret = stringWriter.toString();
             } catch (Exception e)
             {
                 System.out.println("Error:" + e.getMessage());
@@ -660,28 +683,29 @@ public class HelloFunction {
 
         // Finally some basic template handling for page output loading the content from Object Storage
        try {
-           URL urlObject = new URL(PAGE_URL);
-           URLConnection urlConnection = urlObject.openConnection();
-           InputStream inputStream = urlConnection.getInputStream();
-           ret = ret + readFromInputStream(inputStream);
-           ret = ret.replace("ALERT_TEXT", alert);
-           ret = ret.replace("SR_TEXT", support_case_description);
-           ret = ret.replace("USER_VALUE", SUB);
-           ret = ret.replace("FIRST_NAME_VALUE", FIRST_NAME);
-           ret = ret.replace("LAST_NAME_VALUE", LAST_NAME);
-           ret = ret.replace("PICTURE_URL_VALUE", PICTURE_URL);
-           ret = ret.replace("TESTIMONIAL_VALUE", TESTIMONIAL);
-           ret = ret.replace("GENERATED_VALUE", GENERATED_TESTIMONIAL);
-           ret = ret.replace("SUPPORT_CASE_ID_VALUE", SUPPORT_CASE_ID);
-           ret = ret.replace("ID_TOKEN_VALUE", ID_TOKEN);
-           ret = ret.replace("APP_URL", APP_URL);
+           Map<String, String> data = new HashMap<String, String>();
+           data.put("ALERT_TEXT", alert);
+           data.put("SR_TEXT", support_case_description);
+           data.put("USER_VALUE", SUB);
+           data.put("FIRST_NAME_VALUE", FIRST_NAME);
+           data.put("LAST_NAME_VALUE", LAST_NAME);
+           data.put("PICTURE_URL_VALUE", PICTURE_URL);
+           data.put("TESTIMONIAL_VALUE", TESTIMONIAL);
+           data.put("GENERATED_VALUE", GENERATED_TESTIMONIAL);
+           data.put("SUPPORT_CASE_ID_VALUE", SUPPORT_CASE_ID);
+           data.put("ID_TOKEN_VALUE", ID_TOKEN);
+           data.put("APP_URL", APP_URL);
            if(GENERATED_TESTIMONIAL.length() > 0)
            {
-               ret = ret.replace("SUBMIT_DISABLED", "");
+               data.put("SUBMIT_DISABLED", "");
            } else {
-               ret = ret.replace("SUBMIT_DISABLED", "disabled");
+               data.put("SUBMIT_DISABLED", "disabled");
            }
+           StringWriter stringWriter = new StringWriter();
+           testimonialsTemplate.process(data, stringWriter);
+           stringWriter.flush();
            hctx.setResponseHeader("Content-type", "text/html");
+           ret = stringWriter.toString();
        } catch (Exception e)
        {
            System.out.println("Error:" + e.getMessage());
