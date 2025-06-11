@@ -77,7 +77,7 @@ import java.util.HashMap;
 public class HelloFunction {
 
     // JDBC CONNECTION POOL
-    private PoolDataSource pds;
+    private static PoolDataSource pds;
 
     // JDBC CONNECTION DETAILS
     private static String DB_USER;
@@ -117,6 +117,20 @@ public class HelloFunction {
     // For testing native image locally
     public static void main(String[] args) {
         System.out.println("Main running ... testing DB connection ... ");
+        String currentSysDate = "";
+        String ret = "";
+        // Get resource "freemarker/version.properties"//[Code-Assist (15)]
+        try (InputStream is = HelloFunction.class.getClassLoader().getResourceAsStream("freemarker/version.properties")) {
+            if (is != null) {
+                Properties props = new Properties();
+                props.load(is);
+                System.out.println("Freemarker version: " + props.getProperty("version"));
+            } else {
+                System.out.println("Resource not found: freemarker/version.properties");
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading freemarker/version.properties: " + e.getMessage());
+        }
         try {
             try {
                 ConfigFileAuthenticationDetailsProvider configFileAuthenticationDetailsProvider =
@@ -170,10 +184,10 @@ public class HelloFunction {
             }
             Properties props = new Properties();
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
-            PoolDataSource _pds = PoolDataSourceFactory.getPoolDataSource();
-            _pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
+            pds = PoolDataSourceFactory.getPoolDataSource();
+            pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
             if(DB_WALLET_OCID.length() > 0) {
-                _pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
+                pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
                 System.out.println("Using mTLS with Wallet:" + DB_URL + "?TNS_ADMIN=/tmp");
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
@@ -209,24 +223,33 @@ public class HelloFunction {
                 }
             } else {
                 System.out.println("Using TLS without Wallet");
-                _pds.setURL(DB_URL);
+                pds.setURL(DB_URL);
             }
-            _pds.setUser(DB_USER);
-            _pds.setPassword(DB_PASSWORD);
-            _pds.setConnectionPoolName("JDBC_UCP_POOL");
-            _pds.setConnectionProperties(props);
-            OracleConnection connection = (OracleConnection) _pds.getConnection();
+            pds.setUser(DB_USER);
+            pds.setPassword(DB_PASSWORD);
+            pds.setConnectionPoolName("JDBC_UCP_POOL");
+            pds.setConnectionProperties(props);
+            OracleConnection connection = (OracleConnection) pds.getConnection();
             PreparedStatement userQuery = connection.prepareStatement("SELECT SYSDATE");
             ResultSet rs = userQuery.executeQuery();
             if(rs.next()) {
-                System.out.println("Database returned SYSDATE: " + rs.getString("SYSDATE"));
+                currentSysDate = rs.getString("SYSDATE");
             }
             connection.close();
+            configuration = new Configuration();
+            Template template = new Template("TestingMain", "Sysdate is ${SYSDATE}", configuration);
+            Map<String, String> data = new HashMap<String, String>();
+            data.put("SYSDATE", currentSysDate);
+            StringWriter stringWriter = new StringWriter();
+            template.process(data, stringWriter);
+            stringWriter.flush();
+            ret = stringWriter.toString();
         } catch (Exception e)
         {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+        System.out.println(ret);
     }
 
     @FnConfiguration
