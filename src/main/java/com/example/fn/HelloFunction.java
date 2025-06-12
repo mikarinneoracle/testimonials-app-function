@@ -192,10 +192,7 @@ public class HelloFunction {
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             pds = PoolDataSourceFactory.getPoolDataSource();
             pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            if (new File(WALLET_DIR).exists()) {
-                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
-                pds.setURL(DB_URL + "?TNS_ADMIN=" + WALLET_DIR );
-            } else if(DB_WALLET_OCID.length() > 0) {
+            if(DB_WALLET_OCID.length() > 0) {
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
                         .generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single)
@@ -375,10 +372,7 @@ public class HelloFunction {
                 DB_WALLET_PASSWORD = new String(secretValueDecoded);
                 System.out.println("Got DB Wallet password from Vault " + DB_WALLET_PASSWORD);
             }
-            if (new File(WALLET_DIR).exists()) {
-                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
-                pds.setURL(DB_URL + "?TNS_ADMIN=" + WALLET_DIR );
-            } else if(DB_WALLET_OCID.length() > 0) {
+            if(DB_WALLET_OCID.length() > 0) {
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
                         .generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single)
