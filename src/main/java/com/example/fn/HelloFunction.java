@@ -116,6 +116,8 @@ public class HelloFunction {
     private static Template testimonialsTemplate;
     private static Configuration configuration;
 
+    private static final String WALLET_DIR = "/tmp/wallet";
+
     // For testing native image locally
     public static void main(String[] args) {
         System.out.println("Main running ... testing DB connection ... ");
@@ -189,10 +191,9 @@ public class HelloFunction {
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             pds = PoolDataSourceFactory.getPoolDataSource();
             pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            String walletDir = "./tmp/wallet";
-            if (new File(walletDir).exists()) {
-                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + walletDir);
-                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir );
+            if (new File(WALLET_DIR).exists()) {
+                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + WALLET_DIR );
             } else if(DB_WALLET_OCID.length() > 0) {
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
@@ -206,11 +207,11 @@ public class HelloFunction {
                         .build();
                 GenerateAutonomousDatabaseWalletResponse response = databaseClient.generateAutonomousDatabaseWallet(request);
                 InputStream inputStream = response.getInputStream();
-                System.out.println("Wallet directory: " + walletDir);
-                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir);
-                System.out.println("Downloading Wallet for mTLS:" + DB_URL + "?TNS_ADMIN=" + walletDir);
+                System.out.println("Wallet directory: " + WALLET_DIR);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
+                System.out.println("Downloading Wallet for mTLS:" + DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
                 System.out.println(DB_WALLET_OCID);
-                outputDir = new File(walletDir);
+                outputDir = new File(WALLET_DIR);
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
@@ -373,10 +374,9 @@ public class HelloFunction {
                 DB_WALLET_PASSWORD = new String(secretValueDecoded);
                 System.out.println("Got DB Wallet password from Vault " + DB_WALLET_PASSWORD);
             }
-            String walletDir = "./tmp/wallet";
-            if (new File(walletDir).exists()) {
-                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + walletDir);
-                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir );
+            if (new File(WALLET_DIR).exists()) {
+                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + WALLET_DIR );
             } else if(DB_WALLET_OCID.length() > 0) {
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
@@ -390,11 +390,11 @@ public class HelloFunction {
                         .build();
                 GenerateAutonomousDatabaseWalletResponse response = databaseClient.generateAutonomousDatabaseWallet(request);
                 InputStream inputStream = response.getInputStream();
-                System.out.println("Wallet directory: " + walletDir);
-                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir);
-                System.out.println("Downloading Wallet for mTLS:" + DB_URL + "?TNS_ADMIN=" + walletDir);
+                System.out.println("Wallet directory: " + WALLET_DIR);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
+                System.out.println("Downloading Wallet for mTLS:" + DB_URL + "?TNS_ADMIN=" + WALLET_DIR);
                 System.out.println(DB_WALLET_OCID);
-                outputDir = new File(walletDir);
+                outputDir = new File(WALLET_DIR);
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
