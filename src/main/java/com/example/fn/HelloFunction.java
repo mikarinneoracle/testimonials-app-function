@@ -12,7 +12,9 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -118,6 +120,7 @@ public class HelloFunction {
     public static void main(String[] args) {
         System.out.println("Main running ... testing DB connection ... ");
         String currentSysDate = "";
+        File outputDir = null;
         String ret = "";
         // Get resource "freemarker/version.properties"
         try (InputStream is = HelloFunction.class.getClassLoader().getResourceAsStream("freemarker/version.properties")) {
@@ -186,23 +189,28 @@ public class HelloFunction {
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             pds = PoolDataSourceFactory.getPoolDataSource();
             pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            if(DB_WALLET_OCID.length() > 0) {
-                pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
-                System.out.println("Using mTLS with Wallet:" + DB_URL + "?TNS_ADMIN=/tmp");
+            String walletDir = "./tmp/wallet";
+            if (new File(walletDir).exists()) {
+                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + walletDir);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir );
+            } else if(DB_WALLET_OCID.length() > 0) {
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
                         .generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single)
                         .password(DB_WALLET_PASSWORD)
                         .isRegional(true)
                         .build();
-
                 GenerateAutonomousDatabaseWalletRequest request = GenerateAutonomousDatabaseWalletRequest.builder()
                         .autonomousDatabaseId(DB_WALLET_OCID)
                         .generateAutonomousDatabaseWalletDetails(walletDetails)
                         .build();
                 GenerateAutonomousDatabaseWalletResponse response = databaseClient.generateAutonomousDatabaseWallet(request);
                 InputStream inputStream = response.getInputStream();
-                File outputDir = new File("/tmp/");
+                System.out.println("Wallet directory: " + walletDir);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir);
+                System.out.println("Downloading Wallet for mTLS:" + DB_URL + "?TNS_ADMIN=" + walletDir);
+                System.out.println(DB_WALLET_OCID);
+                outputDir = new File(walletDir);
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
@@ -210,7 +218,7 @@ public class HelloFunction {
                     ZipEntry entry;
                     byte[] buffer = new byte[4096];
                     while ((entry = zis.getNextEntry()) != null) {
-                        System.out.println("DB WALLET file: " + entry.getName());
+                        System.out.println("Downloaded " + entry.getName());
                         File outFile = new File(outputDir, entry.getName());
                         try (FileOutputStream fos = new FileOutputStream(outFile)) {
                             int len;
@@ -230,12 +238,14 @@ public class HelloFunction {
             pds.setConnectionPoolName("JDBC_UCP_POOL");
             pds.setConnectionProperties(props);
             OracleConnection connection = (OracleConnection) pds.getConnection();
+            System.out.println("Got connection, making query ...");
             PreparedStatement userQuery = connection.prepareStatement("SELECT SYSDATE");
             ResultSet rs = userQuery.executeQuery();
             if(rs.next()) {
                 currentSysDate = rs.getString("SYSDATE");
             }
             connection.close();
+            System.out.println("Query succesful.");
             configuration = new Configuration();
             Template template = new Template("TestingMain", "Sysdate is ${SYSDATE}", configuration);
             Map<String, String> data = new HashMap<String, String>();
@@ -244,11 +254,21 @@ public class HelloFunction {
             template.process(data, stringWriter);
             stringWriter.flush();
             ret = stringWriter.toString();
+            // Clean up - delete "tmp" directory
+            if (outputDir != null && outputDir.exists()) {
+                System.out.println("Cleaning up Wallet directory: " + outputDir.getPath());
+                for (File file : outputDir.listFiles()) {
+                    file.delete();
+                }
+                outputDir.delete();
+                new File("./tmp").delete();
+            }
         } catch (Exception e)
         {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+        System.out.println("Printing result with Freemarker:");
         System.out.println(ret);
     }
 
@@ -275,6 +295,9 @@ public class HelloFunction {
         WELCOME_URL = ctx.getConfigurationByKey("WELCOME_URL").orElse(System.getenv().getOrDefault("WELCOME_URL", ""));
         IDCS_URL = ctx.getConfigurationByKey("IDCS_URL").orElse(System.getenv().getOrDefault("IDCS_URL", ""));
         PROFILE_ID = ctx.getConfigurationByKey("PROFILE_ID").orElse(System.getenv().getOrDefault("PROFILE_ID", ""));
+
+        // In case of using Wallet / mTLS
+        File outputDir = null;
 
         try {
             ResourcePrincipalAuthenticationDetailsProvider resourcePrincipalAuthenticationDetailsProvider =
@@ -350,23 +373,28 @@ public class HelloFunction {
                 DB_WALLET_PASSWORD = new String(secretValueDecoded);
                 System.out.println("Got DB Wallet password from Vault " + DB_WALLET_PASSWORD);
             }
-            if(DB_WALLET_OCID.length() > 0) {
-                pds.setURL(DB_URL + "?TNS_ADMIN=/tmp");
-                System.out.println("Using mTLS with Wallet:" + DB_URL + "?TNS_ADMIN=/tmp");
+            String walletDir = "./tmp/wallet";
+            if (new File(walletDir).exists()) {
+                System.out.println("Wallet files exist, using for mTLS: " + DB_URL + "?TNS_ADMIN=" + walletDir);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir );
+            } else if(DB_WALLET_OCID.length() > 0) {
                 // Download wallet using SDK
                 GenerateAutonomousDatabaseWalletDetails walletDetails = GenerateAutonomousDatabaseWalletDetails.builder()
                         .generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single)
                         .password(DB_WALLET_PASSWORD)
                         .isRegional(true)
                         .build();
-
                 GenerateAutonomousDatabaseWalletRequest request = GenerateAutonomousDatabaseWalletRequest.builder()
                         .autonomousDatabaseId(DB_WALLET_OCID)
                         .generateAutonomousDatabaseWalletDetails(walletDetails)
                         .build();
                 GenerateAutonomousDatabaseWalletResponse response = databaseClient.generateAutonomousDatabaseWallet(request);
                 InputStream inputStream = response.getInputStream();
-                File outputDir = new File("/tmp/");
+                System.out.println("Wallet directory: " + walletDir);
+                pds.setURL(DB_URL + "?TNS_ADMIN=" + walletDir);
+                System.out.println("Downloading Wallet for mTLS:" + DB_URL + "?TNS_ADMIN=" + walletDir);
+                System.out.println(DB_WALLET_OCID);
+                outputDir = new File(walletDir);
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
@@ -374,7 +402,7 @@ public class HelloFunction {
                     ZipEntry entry;
                     byte[] buffer = new byte[4096];
                     while ((entry = zis.getNextEntry()) != null) {
-                        System.out.println("DB WALLET file: " + entry.getName());
+                        System.out.println("Downloaded " + entry.getName());
                         File outFile = new File(outputDir, entry.getName());
                         try (FileOutputStream fos = new FileOutputStream(outFile)) {
                             int len;
