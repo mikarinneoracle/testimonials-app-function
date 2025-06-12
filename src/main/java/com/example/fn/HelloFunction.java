@@ -116,6 +116,7 @@ public class HelloFunction {
     private static Template testimonialsTemplate;
     private static Configuration configuration;
 
+    // In case of using Wallet / mTLS
     private static final String WALLET_DIR = "/tmp/wallet";
 
     // For testing native image locally
