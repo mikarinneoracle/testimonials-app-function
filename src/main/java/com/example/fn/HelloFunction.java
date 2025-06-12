@@ -336,6 +336,14 @@ public class HelloFunction {
         }
 
         try {
+            System.out.println("==== FUNC ====");
+            try {
+                List<String> lines = Files.readAllLines(Paths.get("/func.yaml")).stream().limit(3).collect(Collectors.toList());
+                lines.forEach(System.out::println);
+            } catch (Exception e) {
+                System.out.println("Error reading func.yaml: " + e.getMessage());
+            }
+            System.out.println("==============");
             Properties props = new Properties();
             props.put(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
             pds = PoolDataSourceFactory.getPoolDataSource();
@@ -452,23 +460,6 @@ public class HelloFunction {
         String GENERATED_TESTIMONIAL = "";
         String SUPPORT_CASE_ID = "";
         String ID_TOKEN = "";
-
-        System.out.println("==== FUNC ====");
-        try {
-            List<String> lines = Files.readAllLines(Paths.get("/func.yaml")).stream().limit(3).collect(Collectors.toList());
-            lines.forEach(System.out::println);
-        } catch (Exception e) {
-            System.out.println("Error reading func.yaml: " + e.getMessage());
-        }
-        System.out.println("==============");
-
-        System.out.println("======= CONFIG ======");
-        //hctx.getHeaders().getAll().forEach((key, value) -> System.out.println(key + ": " + value));
-        //input.getHeaders().getAll().forEach((key, value) -> System.out.println(key + ": " + value));
-        hctx.getQueryParameters().getAll().forEach((key, value) -> System.out.println(key + ": " + value));
-        //String[] configTokens = authConfig.split(",");
-        //List<String> tokenizedConfig = Arrays.stream(configTokens).map(String::trim).collect(Collectors.toList());
-        System.out.println("=====================");
 
         //Redirect to signup
         if(action.equals("signup")) {
