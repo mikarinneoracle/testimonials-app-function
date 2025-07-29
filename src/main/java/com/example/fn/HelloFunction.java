@@ -470,6 +470,21 @@ public class HelloFunction {
             return ret;
         }
 
+        // Carousel items for JS Fecth API for anonymous users to be used with a static Welcome page
+        if(hctx.getMethod().equalsIgnoreCase("GET") && action.equals("carousel")) {
+            String carousel = "";
+            try {
+                carousel = getCarouselItems(CAROUSEL_PAGE_URL);
+            } catch (Exception e)
+            {
+                System.out.println("Error getting carousel items");
+                carousel = "Error getting carousel items";
+            }
+            hctx.setResponseHeader("Content-type", "text/html");
+            hctx.setResponseHeader("Access-Control-Allow-Origin","*");
+            return carousel;
+        }
+
         // Get Sub from bearer cookie
         // Get id_token from cookie for logout
         String cookies = hctx.getHeaders().get("Cookie").orElse(null);
