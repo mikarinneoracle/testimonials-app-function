@@ -2,7 +2,7 @@
 
 ## Architecture 
 
-![architecture](testimonials_arch.png)
+![architecture](testimonials_arch_1.png)
 
 ## Authorizer function repo
 
