@@ -29,7 +29,8 @@ CURRENT NAME    PROVIDER        API URL                                         
 fn use context default
 fn create app demo
 
-fn config app demo DB_URL fntest_tp
+Database (e.g. Autonoumus):
+
 fn config app demo DB_USER admin
 
 TLS:
@@ -38,11 +39,12 @@ fn config app demo DB_PASSWORD WelcomeFolks123##
 fn config app demo DB_WALLET_PASSWORD WelcomeFolks123##
 
 mTLS with Vault:
+fn config app demo DB_URL fntest_tp
 fn config app demo DB_PASSWORD 'ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaa....izsxrjyyrxq'
 fn config app demo DB_WALLET_PASSWORD 'ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaa....2gizsxrjyyrxq'
 fn config app demo DB_WALLET_OCID 'ocid1.autonomousdatabase.oc1.eu-frankfurt-1.anthel....ihop3ziueesgq'
 
-triggers:
+Triggers:
 fn config app demo APP_URL http://localhost:8080/t/demo/invoke
 fn config app demo WELCOME_URL http://localhost:8080/t/demo/invoke
 fn config app demo AUTH_URL http://localhost:8080/t/demo/authenticate
@@ -72,4 +74,14 @@ fn deploy --app demo  --local
 Deploy to OCI:
 fn use context OCI
 fn deploy --app hello-arm
+</pre>
+
+For OCI use the following API Gateway URLs (instead of triggers) in Application config:
+
+<pre>
+APP_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/testimonial
+WELCOME_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/welcome
+AUTH_URL 	
+https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/login
+SIGNUP_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/welcome?action=signup
 </pre>
