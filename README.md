@@ -79,8 +79,7 @@ For OCI use the following API Gateway URLs (instead of triggers) in Application 
 <pre>
 APP_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/testimonial
 WELCOME_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/welcome
-AUTH_URL 	
-https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/login
+AUTH_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/login
 SIGNUP_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/welcome?action=signup
 
 Deploy to OCI:
