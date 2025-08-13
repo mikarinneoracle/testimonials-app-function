@@ -37,7 +37,7 @@ database, OCI Vault and policies.
 It will also create OCI DevOps project for the Testimonials app CI/CD to OCI with GraalVM native builds for Java.
 <p>
 
-## Local Fn config
+## Local Fn (server)
 
 <pre>
 Fn contexts:
@@ -65,7 +65,7 @@ fn config app demo DB_PASSWORD 'ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaa....i
 fn config app demo DB_WALLET_PASSWORD 'ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaa....2gizsxrjyyrxq'
 fn config app demo DB_WALLET_OCID 'ocid1.autonomousdatabase.oc1.eu-frankfurt-1.anthel....ihop3ziueesgq'
 
-Triggers:
+Triggers configs (see triggers created below with Fn deployments):
 fn config app demo APP_URL http://localhost:8080/t/demo/invoke
 fn config app demo WELCOME_URL http://localhost:8080/t/demo/invoke
 fn config app demo AUTH_URL http://localhost:8080/t/demo/authenticate
