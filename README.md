@@ -95,3 +95,18 @@ Deploy to OCI:
 fn use context OCI
 fn deploy --app demo-arm
 </pre>
+
+## Run the App function <code>main</code> for mTLS testing
+<pre>
+Set env vars:
+
+export DB_WALLET_OCID="ocid1.autonomousdatabase.oc1.eu-frankfurt-1.anthel...ueesgq"
+export DB_URL=fntest_tp
+export DB_USER=admin
+export DB_WALLET_PASSWORD="ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaa....rjyyrxq"
+export DB_PASSWORD="ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaa....rjyyrxq"
+
+mvn clean package
+java -jar target/Hellofunc-1.0-SNAPSHOT-jar-with-dependencies.jar
+
+</pre>
