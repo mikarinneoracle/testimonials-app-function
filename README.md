@@ -4,17 +4,26 @@
 
 ![architecture](testimonials_arch_2.png)
 
-## Authorizer function repo
+The Authorizer function has two purposes: To handle sign in on both enviroments (localhost and OCI) and implement auth/security in APIGW as an authorizer function.
+<p>
+The App function has three purposes: To show the Welcome -page with a carousel, to sign-up and to add a testimonial either via POST or JSON REST API.
+<p>
+(Functions could be divided into more granural functions but just using these two for simplicity.)
 
+## Authorizer function repo
 https://github.com/mikarinneoracle/testimonials-authorizer-function
 
 ## UI and DB schema repo
-
 https://github.com/mikarinneoracle/testimonials-ui-and-schema
 
 ## Terraform Stack for OCI DevOps
-
 https://github.com/mikarinneoracle/testimonials-devops-tf-stack
+
+Terraform stack will create all resources and configs needed to run the Testimonials app excluding
+database, OCI Vault and policies.
+<p>
+It will also create OCI DevOps project for the Testimonials app CI/CD to OCI with GraalVM native builds for Java.
+<p>
 
 ## Local Fn config
 
