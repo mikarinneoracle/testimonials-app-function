@@ -16,6 +16,18 @@ https://github.com/mikarinneoracle/testimonials-authorizer-function
 ## UI and DB schema repo
 https://github.com/mikarinneoracle/testimonials-ui-and-schema
 
+To create database with schema and data:
+
+<pre>
+./sql /nolog
+set cloudconfig Wallet.zip
+conn admin/<password>@testimonials_tp
+lb update -changelog-file control-file.xml
+</pre>
+For UI copy the files into Object Storage bucket.
+<br>
+For the files welcome.html and welcome local.html create PARs to access outside from your tenancy.
+
 ## Terraform Stack for OCI DevOps
 https://github.com/mikarinneoracle/testimonials-devops-tf-stack
 
@@ -90,16 +102,18 @@ APP_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/tes
 WELCOME_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/welcome
 AUTH_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/login
 SIGNUP_URL https://dc7ll...yzb4q.apigateway.eu-frankfurt-1.oci.customer-oci.com/welcome?action=signup
+</pre>
 
 Deploy to OCI:
+<pre>
 fn use context OCI
 fn deploy --app demo-arm
 </pre>
 
 ## Run the App function <code>main</code> for mTLS testing
-<pre>
-Set env vars:
 
+Set env vars:
+<pre>
 export DB_WALLET_OCID="ocid1.autonomousdatabase.oc1.eu-frankfurt-1.anthel...ueesgq"
 export DB_URL=fntest_tp
 export DB_USER=admin
@@ -108,5 +122,4 @@ export DB_PASSWORD="ocid1.vaultsecret.oc1.eu-frankfurt-1.amaaaa....rjyyrxq"
 
 mvn clean package
 java -jar target/Hellofunc-1.0-SNAPSHOT-jar-with-dependencies.jar
-
 </pre>
