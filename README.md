@@ -91,6 +91,13 @@ fn list config app demo
 
 Deploy to localhost:
 fn deploy --app demo  --local
+
+Triggers:
+fn list triggers demo 
+FUNCTION                NAME            ID                              TYPE    SOURCE          ENDPOINT
+authorizerfnjava        authenticate    01K1WEBE30NG8G00GZJ0000008      http    /authenticate   http://localhost:8080/t/demo/authenticate
+fnsimplejava            invoke          01K1WE6H9YNG8G00GZJ0000003      http    /invoke         http://localhost:8080/t/demo/invoke
+
 </pre>
 
 ## OCI
