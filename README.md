@@ -26,7 +26,7 @@ lb update -changelog-file control-file.xml
 </pre>
 For UI copy the files into Object Storage bucket.
 <br>
-For the files welcome.html and welcome local.html create PARs to access outside from your tenancy.
+For the files <code>welcome.html</code> and <code>welcome_local.html</code> create PARs to access outside from your tenancy.
 
 ## Terraform Stack for OCI DevOps
 https://github.com/mikarinneoracle/testimonials-devops-tf-stack
@@ -50,7 +50,7 @@ CURRENT NAME    PROVIDER        API URL                                         
 fn use context default
 fn create app demo
 
-Database (e.g. Autonoumus):
+Database (e.g. Autonomous):
 
 fn config app demo DB_USER admin
 
