@@ -498,14 +498,20 @@ public class HelloFunction {
                     if(bearer.length() > 0)
                     {
                         SUB = getSubFromJwt(bearer);
-                        System.out.println("Sub from BEARER COOKIE: " + SUB);
-                        JwtData jwt = getJwt(bearer);
-                        System.out.println("Display-name from BEARER COOKIE: " + jwt.user_displayname);
-                        if(jwt.user_displayname.length() > 0)
-                        {
-                            String[] names = jwt.user_displayname.split(" ");
-                            FIRST_NAME = names[0] != null ? names[0] : "";
-                            LAST_NAME = names[1] != null ? names[1] : "";
+                        if(sub != null) {
+                            System.out.println("Sub from BEARER COOKIE: " + SUB);
+                            JwtData jwt = getJwt(bearer);
+                            System.out.println("Display-name from BEARER COOKIE: " + jwt.user_displayname);
+                            if(jwt.user_displayname.length() > 0)
+                            {
+                                String[] names = jwt.user_displayname.split(" ");
+                                FIRST_NAME = names[0] != null ? names[0] : "";
+                                LAST_NAME = names[1] != null ? names[1] : "";
+                            }
+                        } else {
+                            System.out.println("Sub from BEARER COOKIE is not valid!");
+                            hctx.setStatusCode(401);
+                            return "";
                         }
                     }
                 }
